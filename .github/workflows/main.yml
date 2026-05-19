@@ -14,23 +14,20 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install Godot Engine (.NET Edition)
-        uses: actions/setup-godot-action@v1
+        uses: chickensoft-games/setup-godot@v2
         with:
-          godot-version: '4.2.3'
+          version: 4.2.3
           use-dotnet: true
-          include-templates: true
 
       - name: Inject Official Production API Endpoints
         run: |
           echo "Setting engine configurations to official network lines..."
-          # Configures the build pipeline to target live production servers natively
           echo "GLOBAL_API_ENDPOINT=https://api.polytoria.com/v1" >> $GITHUB_ENV
           echo "GLOBAL_CHAT_ENDPOINT=wss://chat.polytoria.com" >> $GITHUB_ENV
 
       - name: Compile Standalone Android Client APK
         run: |
           mkdir -p build/android
-          # Headless compilation automatically mapping native hardware assets
           godot --headless --export-release "Android" build/android/PolytoriaLiveClient.apk
 
       - name: Package and Upload Client Build
