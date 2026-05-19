@@ -28,8 +28,18 @@ jobs:
 
       - name: Pre-Compile C# Project Solutions
         run: |
-          dotnet restore
-          dotnet build
+          echo "Booting Godot to generate cache and Mono bindings..."
+          godot --headless --build-solutions --quit || true
+          
+          echo "Hunting down the generated solution file..."
+          SOLUTION=$(find . -name "*.sln" | head -n 1)
+          if [ -n "$SOLUTION" ]; then
+            echo "Found solution at $SOLUTION, building now..."
+            dotnet restore "$SOLUTION"
+            dotnet build "$SOLUTION"
+          else
+            echo "No solution file found. Assuming Godot handled it natively."
+          fi
 
       - name: Compile Standalone Android Client APK
         run: |
