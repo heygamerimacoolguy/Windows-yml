@@ -1,29 +1,40 @@
-name: Windows Cloud PC (Sounds On)
-
-on:
-  workflow_dispatch:
+name: Compile Polytoria Custom Client
+on: [workflow_dispatch]
 
 jobs:
-  build:
-    runs-on: windows-latest
-    timeout-minutes: 9999
-    
+  build-android:
+    runs-on: ubuntu-latest
     steps:
-      - name: Downloading Essentials
+      - name: Checkout Polytoria Source
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK Framework
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Godot Engine (.NET Edition)
+        uses: actions/setup-godot-action@v1
+        with:
+          godot-version: '4.2.3'
+          use-dotnet: true
+          include-templates: true
+
+      - name: Inject Official Production API Endpoints
         run: |
-          Invoke-WebRequest -Uri "https://www.dropbox.com/scl/fi/nlx5eom9f00k9d9hy5pvx/Downloads.bat?rlkey=wyivysvz7qhw4ewbywo4mm1d0&dl=1" -OutFile "Downloads.bat"
-          cmd /c Downloads.bat
+          echo "Setting engine configurations to official network lines..."
+          # Configures the build pipeline to target live production servers natively
+          echo "GLOBAL_API_ENDPOINT=https://api.polytoria.com/v1" >> $GITHUB_ENV
+          echo "GLOBAL_CHAT_ENDPOINT=wss://chat.polytoria.com" >> $GITHUB_ENV
 
-      - name: Connecting Ngrok Account
-        run: ngrok config add-authtoken $Env:NGROK_AUTH_TOKEN
-        env:
-          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-          
-      - name: Enabling RDP Access
-        run: cmd /c Access.bat       
+      - name: Compile Standalone Android Client APK
+        run: |
+          mkdir -p build/android
+          # Headless compilation automatically mapping native hardware assets
+          godot --headless --export-release "Android" build/android/PolytoriaLiveClient.apk
 
-      - name: Log In To Remote Desktop Protocol
-        run: cmd /c startaudio.bat
-
-      - name: Time Count
-        run: cmd /c loop.bat
+      - name: Package and Upload Client Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Polytoria-Official-Network-Build
+          path: build/android/PolytoriaLiveClient.apk
