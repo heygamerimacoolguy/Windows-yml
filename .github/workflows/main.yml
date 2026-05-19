@@ -17,13 +17,19 @@ jobs:
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.2.2
-          use-dotnet: 'true'
+          use-dotnet: true
+          include-templates: true
 
       - name: Inject Official Production API Endpoints
         run: |
           echo "Setting engine configurations to official network lines..."
           echo "GLOBAL_API_ENDPOINT=https://api.polytoria.com/v1" >> $GITHUB_ENV
           echo "GLOBAL_CHAT_ENDPOINT=wss://chat.polytoria.com" >> $GITHUB_ENV
+
+      - name: Pre-Compile C# Project Solutions
+        run: |
+          dotnet restore
+          dotnet build
 
       - name: Compile Standalone Android Client APK
         run: |
@@ -34,4 +40,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Polytoria-Official-Network-Build
-          path: build/android/PolytoriaLiveClient.apk
+          path: |
+            **/*.apk
