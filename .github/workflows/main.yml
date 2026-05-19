@@ -16,8 +16,8 @@ jobs:
       - name: Install Godot Engine (.NET Edition)
         uses: chickensoft-games/setup-godot@v2
         with:
-          version: 4.2.3
-          use-dotnet: true
+          version: 4.2.2
+          use-dotnet: 'true'
 
       - name: Inject Official Production API Endpoints
         run: |
